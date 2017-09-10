@@ -119,7 +119,8 @@ static void next() {
 				num_val = (int)last_pos;	
 			} else {
 				token = Num;
-			}	
+			}
+
 		} else if (token == '/') {
             /* comments */
             /* look ahead one LL(1) */
@@ -132,7 +133,113 @@ static void next() {
                 token = Div;
                 return;
             }
-        } 
+        } else if ( token == '=') {
+            /* parse '==' and '=' */
+            if (*src == '=') {
+                src++;
+                token = Eq;
+            } else {
+                token = Assign;
+            }
+            return;
+        } else if (token == '+') {
+           /* parse '+' and '++' */
+           if (*src == '+') {
+              src++;
+              token = Inc;
+           } else {
+              token = Add;
+           }
+           return ;
+        } else if (token == '-') {
+            /* parse '-' and '--' */
+            if (*src == '-') {
+                src++;
+                token = Dec;
+            } else {
+                token = Sub;
+            }
+            return;
+
+        } else if (token == '!') {
+            /* '!=! */
+            if (*src == '=') {
+                src++;
+                token = Ne;
+            }
+            return;
+        } else if (token == '<') {
+            /* parse '<=', '<<' or '<' */
+            if (*src == '=') {
+                src++;
+                token = Le;
+            } else if (*src == '<') {
+                src++;
+                token = Shl;
+            } else {
+                token = Lt;
+            }
+            return;
+
+        } else if (token == '>') {
+            // parse '>=', '>>' or '>'
+            if (*src == '=') {
+                src ++;
+                token = Ge;
+            } else if (*src == '>') {
+                src ++;
+                token = Shr;
+            } else {
+                token = Gt;
+            }
+            return;
+
+        } else if (token == '|') {
+            // parse '|' or '||'
+            if (*src == '|') {
+                src ++;
+                token = Lor;
+            } else {
+                token = Or;
+            }
+            return;
+
+        } else if (token == '&') {
+            // parse '&' and '&&'
+            if (*src == '&') {
+                src ++;
+                token = Lan;
+            } else {
+                token = And;
+            }
+            return;
+
+        } else if (token == '^') {
+            token = Xor;
+            return;
+
+        } else if (token == '%') {
+            token = Mod;
+            return;
+
+        } else if (token == '*') {
+            token = Mul;
+            return;
+
+        } else if (token == '[') {
+            token = Brak;
+            return;
+
+        } else if (token == '?') {
+            token = Cond;
+            return;
+
+        } else if (token == '~' || token == ';' || token == '{' || token == '}' || 
+                   token == '(' || token == ')' || token == ']' || token == ',' || 
+                   token == ':') {
+            // directly return the character as token;
+            return;
+        }
     }
 }
 

@@ -1,3 +1,2 @@
-apple
-188
-apple
+int a = 5;
+char b = 'e';
