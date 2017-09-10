@@ -13,28 +13,29 @@ int num_val;
 /* allocate memory of symbol table */
 static int alloc_symtbl() {
     /* assign 1000 * identifier frame */
-    if (!(symbol_table = (identifier *)malloc(sizeof(identifier)*1000))) {
+    if (!(symbol_table = (identifier *)malloc(sizeof(identifier)*256))) {
         printf("cound'nt malloc memory for symbol table.\n");
         return -1;
     }
-    memset(symbol_table, 0, sizeof(identifier)*1000);
+    memset(symbol_table, 0, sizeof(identifier)*256);
     return 0;
 }
 
 /* next character */
 static void next() {
     
-    while (token = *src) {
+    while ((token = *src) != 0) {
         ++src;
-        
         if (token == '\n') {
             /* new line */
             ++line_number;
+
         } else if (token == '#') {
            /* skip macro until new line*/
            while (*src != 0 && *src != '\n') {
               ++src;
            }
+
         } else if ((token >= 'a' && token <= 'z') || (token >= 'A' && token <= 'Z') || (token == '_')) {
             /* is character */
 
@@ -42,15 +43,15 @@ static void next() {
             char *last_pos = src - 1;
             int hash = token;
             
-            while ((*src >= 'a' && *src <= 'z') || (*src >= 'A' && *src <= 'Z') || (*src >= '0' && *src <= '9') || (*src == '_')) {
+			while ((*src >= 'a' && *src <= 'z') || (*src >= 'A' && *src <= 'Z') || (*src >= '0' && *src <= '9') || (*src == '_')) {
                 hash = hash * 147 + *src;
-                src++;    
+                src++; 
             }
             
             /* lookup symbol table */
             identifier *current_id = symbol_table;
             while (current_id->token) {
-                if (current_id->hash == hash && !memcmp((char *)current_id->name, last_pos, src - last_pos)) {
+                if ((current_id->hash == hash) && !memcmp((char *)current_id->name, last_pos, src - last_pos)) {
                     /* found the same token */
                     token = current_id->token;
                     return;
@@ -92,8 +93,8 @@ static void next() {
             }
             
             token = Num;
-
             return;
+
         } else if (token == '"' || token == '\'') {
 			/* parse string literal */
 			/* store into the data segment */
@@ -132,11 +133,14 @@ static void parse_expr(int level) {
 void program() {
     /* allocate symbol_table memory first */
     alloc_symtbl();
-
     /* get the next token */
     next();
     while (token > 0) {
-        printf("token is: %3d('%c')\n", token, token);
+		if ( token == 128) {
+			printf("(Num, %d), ", num_val);
+		} else { 
+			printf("%d, ", token);
+		}
         next();
     }
 }
