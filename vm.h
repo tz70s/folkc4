@@ -6,7 +6,9 @@
 #ifndef _VM_H_
 #define _VM_H_
 
-int poolsize; /* size of text/data/stack sections */
+/* size of text/data/stack sections */
+int poolsize;
+
 /* segments */
 int *text_seg, *dump_text, *stack;
 char *data;

@@ -8,6 +8,8 @@
 #include "lexer.h"
 #include "vm.h"
 
+int num_val;
+
 /* allocate memory of symbol table */
 static int alloc_symtbl() {
     /* assign 1000 * identifier frame */
@@ -65,12 +67,12 @@ static void next() {
 
         } else if ((token >= '0' && token <= '9')) {
             /* parse number, three types: dec(123), hex(0x123), oct(0123) */
-            int token_val = token - '0';
-            if (token_val > 0) {
+            num_val = token - '0';
+            if (num_val > 0) {
                 /* decimal */
                 while (*src >= '0' && *src <= '9') {
                     /* translate the number from char to decimal */
-                    token_val = token_val*10 + *src++ - '0';
+                    num_val = num_val*10 + *src++ - '0';
                 }
             } else {
                 token = *++src;
@@ -78,13 +80,13 @@ static void next() {
                     /* hex */
                     token = *++src;
                     while ((token >= '0' && token <= '9') || (token >= 'a' && token <= 'f') || (token >= 'A' && token <= 'F')) {
-                        token_val = token_val*16 + (token & 15) + (token >= 'A' ? 9 : 0);
+                        num_val = num_val*16 + (token & 15) + (token >= 'A' ? 9 : 0);
                         token = *++src;
                     }
                 } else {
                     /* oct */
                     while (*src >= '0' && *src <= '7') {
-                        token_val = token_val*8 + *src++ - '0';
+                        num_val = num_val*8 + *src++ - '0';
                     }
                 }
             }
@@ -92,7 +94,32 @@ static void next() {
             token = Num;
 
             return;
-        }
+        } else if (token == '"' || token == '\'') {
+			/* parse string literal */
+			/* store into the data segment */
+			char *last_pos = data;
+			while (*src != 0 && *src != token) {
+				num_val = *src++;
+				if (num_val == '\\') {
+					/* escape character */
+					num_val = *src++;
+					if (num_val == 'n') {
+						num_val = '\n';
+					}
+				}
+				if (token == '"') {
+					*data++ = num_val;
+				}
+			}
+
+			src++;
+			/* if it is a single character, return Num token */
+			if (token == '"') {
+				num_val = (int)last_pos;	
+			} else {
+				token = Num;
+			}	
+		}
     }
 }
 
@@ -109,7 +136,7 @@ void program() {
     /* get the next token */
     next();
     while (token > 0) {
-        printf("token is: %c\n", token);
+        printf("token is: %3d('%c')\n", token, token);
         next();
     }
 }
