@@ -120,7 +120,19 @@ static void next() {
 			} else {
 				token = Num;
 			}	
-		}
+		} else if (token == '/') {
+            /* comments */
+            /* look ahead one LL(1) */
+            if (*src == '/') {
+                /* skip comments */
+                while (*src != 0 && *src != '\n') {
+                    ++src;
+                }
+            } else {
+                token = Div;
+                return;
+            }
+        } 
     }
 }
 
