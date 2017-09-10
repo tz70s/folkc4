@@ -1,29 +1,29 @@
-/* 
-* Tiny implementation of C interpreter, inspired by C4.
-* Author @tz70s
-*/
-#include <stdio.h>
-#include <memory.h>
-#include <stdlib.h>
+/*
+ * Tiny implementation of C interpreter, inspired by C4.
+ * Author @tz70s
+ */
 #include "lexer.h"
 #include "vm.h"
+#include <memory.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int num_val;
 
 /* allocate memory of symbol table */
 static int alloc_symtbl() {
     /* assign 1000 * identifier frame */
-    if (!(symbol_table = (identifier *)malloc(sizeof(identifier)*256))) {
+    if (!(symbol_table = (identifier *)malloc(sizeof(identifier) * 256))) {
         printf("cound'nt malloc memory for symbol table.\n");
         return -1;
     }
-    memset(symbol_table, 0, sizeof(identifier)*256);
+    memset(symbol_table, 0, sizeof(identifier) * 256);
     return 0;
 }
 
 /* next character */
 static void next() {
-    
+
     while ((token = *src) != 0) {
         ++src;
         if (token == '\n') {
@@ -31,27 +31,32 @@ static void next() {
             ++line_number;
 
         } else if (token == '#') {
-           /* skip macro until new line*/
-           while (*src != 0 && *src != '\n') {
-              ++src;
-           }
+            /* skip macro until new line*/
+            while (*src != 0 && *src != '\n') {
+                ++src;
+            }
 
-        } else if ((token >= 'a' && token <= 'z') || (token >= 'A' && token <= 'Z') || (token == '_')) {
+        } else if ((token >= 'a' && token <= 'z') ||
+                   (token >= 'A' && token <= 'Z') || (token == '_')) {
             /* is character */
 
             /* preserve for keep the whole identifer name */
             char *last_pos = src - 1;
             int hash = token;
-            
-			while ((*src >= 'a' && *src <= 'z') || (*src >= 'A' && *src <= 'Z') || (*src >= '0' && *src <= '9') || (*src == '_')) {
+
+            while ((*src >= 'a' && *src <= 'z') ||
+                   (*src >= 'A' && *src <= 'Z') ||
+                   (*src >= '0' && *src <= '9') || (*src == '_')) {
                 hash = hash * 147 + *src;
-                src++; 
+                src++;
             }
-            
+
             /* lookup symbol table */
             identifier *current_id = symbol_table;
             while (current_id->token) {
-                if ((current_id->hash == hash) && !memcmp((char *)current_id->name, last_pos, src - last_pos)) {
+                if ((current_id->hash == hash) &&
+                    !memcmp((char *)current_id->name, last_pos,
+                            src - last_pos)) {
                     /* found the same token */
                     token = current_id->token;
                     return;
@@ -73,55 +78,58 @@ static void next() {
                 /* decimal */
                 while (*src >= '0' && *src <= '9') {
                     /* translate the number from char to decimal */
-                    num_val = num_val*10 + *src++ - '0';
+                    num_val = num_val * 10 + *src++ - '0';
                 }
             } else {
                 token = *++src;
                 if (token == 'x' || token == 'X') {
                     /* hex */
                     token = *++src;
-                    while ((token >= '0' && token <= '9') || (token >= 'a' && token <= 'f') || (token >= 'A' && token <= 'F')) {
-                        num_val = num_val*16 + (token & 15) + (token >= 'A' ? 9 : 0);
+                    while ((token >= '0' && token <= '9') ||
+                           (token >= 'a' && token <= 'f') ||
+                           (token >= 'A' && token <= 'F')) {
+                        num_val = num_val * 16 + (token & 15) +
+                                  (token >= 'A' ? 9 : 0);
                         token = *++src;
                     }
                 } else {
                     /* oct */
                     while (*src >= '0' && *src <= '7') {
-                        num_val = num_val*8 + *src++ - '0';
+                        num_val = num_val * 8 + *src++ - '0';
                     }
                 }
             }
-            
+
             token = Num;
             return;
 
         } else if (token == '"' || token == '\'') {
-			/* parse string literal */
-			/* store into the data segment */
-			char *last_pos = data;
-			while (*src != 0 && *src != token) {
-				num_val = *src++;
-				if (num_val == '\\') {
-					/* escape character */
-					num_val = *src++;
-					if (num_val == 'n') {
-						num_val = '\n';
-					}
-				}
-				if (token == '"') {
-					*data++ = num_val;
-				}
-			}
+            /* parse string literal */
+            /* store into the data segment */
+            char *last_pos = data;
+            while (*src != 0 && *src != token) {
+                num_val = *src++;
+                if (num_val == '\\') {
+                    /* escape character */
+                    num_val = *src++;
+                    if (num_val == 'n') {
+                        num_val = '\n';
+                    }
+                }
+                if (token == '"') {
+                    *data++ = num_val;
+                }
+            }
 
-			src++;
-			/* if it is a single character, return Num token */
-			if (token == '"') {
-				num_val = (int)last_pos;	
-			} else {
-				token = Num;
-			}
+            src++;
+            /* if it is a single character, return Num token */
+            if (token == '"') {
+                num_val = (int)last_pos;
+            } else {
+                token = Num;
+            }
 
-		} else if (token == '/') {
+        } else if (token == '/') {
             /* comments */
             /* look ahead one LL(1) */
             if (*src == '/') {
@@ -133,7 +141,7 @@ static void next() {
                 token = Div;
                 return;
             }
-        } else if ( token == '=') {
+        } else if (token == '=') {
             /* parse '==' and '=' */
             if (*src == '=') {
                 src++;
@@ -143,14 +151,14 @@ static void next() {
             }
             return;
         } else if (token == '+') {
-           /* parse '+' and '++' */
-           if (*src == '+') {
-              src++;
-              token = Inc;
-           } else {
-              token = Add;
-           }
-           return ;
+            /* parse '+' and '++' */
+            if (*src == '+') {
+                src++;
+                token = Inc;
+            } else {
+                token = Add;
+            }
+            return;
         } else if (token == '-') {
             /* parse '-' and '--' */
             if (*src == '-') {
@@ -184,10 +192,10 @@ static void next() {
         } else if (token == '>') {
             // parse '>=', '>>' or '>'
             if (*src == '=') {
-                src ++;
+                src++;
                 token = Ge;
             } else if (*src == '>') {
-                src ++;
+                src++;
                 token = Shr;
             } else {
                 token = Gt;
@@ -197,7 +205,7 @@ static void next() {
         } else if (token == '|') {
             // parse '|' or '||'
             if (*src == '|') {
-                src ++;
+                src++;
                 token = Lor;
             } else {
                 token = Or;
@@ -207,7 +215,7 @@ static void next() {
         } else if (token == '&') {
             // parse '&' and '&&'
             if (*src == '&') {
-                src ++;
+                src++;
                 token = Lan;
             } else {
                 token = And;
@@ -234,9 +242,9 @@ static void next() {
             token = Cond;
             return;
 
-        } else if (token == '~' || token == ';' || token == '{' || token == '}' || 
-                   token == '(' || token == ')' || token == ']' || token == ',' || 
-                   token == ':') {
+        } else if (token == '~' || token == ';' || token == '{' ||
+                   token == '}' || token == '(' || token == ')' ||
+                   token == ']' || token == ',' || token == ':') {
             // directly return the character as token;
             return;
         }
@@ -244,8 +252,7 @@ static void next() {
 }
 
 /* parse the expression */
-static void parse_expr(int level) {
-    /* do nothinh here */
+static void parse_expr(int level) { /* do nothinh here */
 }
 
 /* public function */
@@ -255,12 +262,11 @@ void program() {
     /* get the next token */
     next();
     while (token > 0) {
-		if ( token == 128) {
-			printf("(Num, %d), ", num_val);
-		} else { 
-			printf("%d, ", token);
-		}
+        if (token == 128) {
+            printf("(Num, %d), ", num_val);
+        } else {
+            printf("%d, ", token);
+        }
         next();
     }
 }
-
