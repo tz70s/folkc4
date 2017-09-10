@@ -7,35 +7,7 @@
 #include <memory.h>
 #include <string.h>
 #include "vm.h"
-
-/* Some global variables */
-int token; /* current token */
-char *src, *old_src; /* pointer to source code string */
-unsigned int line_number; /* line number */
-
-/* next character */
-void next() {
-    /* skip whitespace */
-    if (*src == ' ') {
-        src++;
-        return;
-    }
-    token = *src++;
-}
-
-/* parse the expression */
-void parse_expr(int level) {
-    /* do nothinh here */
-}
-
-void program() {
-    /* get the next token */
-    next();
-    while (token > 0) {
-        printf("token is: %c\n", token);
-        next();
-    }
-}
+#include "lexer.h"
 
 int main(int argc, char **argv) {
     int fd, read_bytes;

@@ -1,12 +1,12 @@
 CC=gcc
 CFLAGS=-O3 -Wall -W
 
-c4clone: c4clone.c vm.o
+folkc4: folkc4.c vm.o lexer.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-%.c.o: vm.c
+%.c.o: vm.c lexer.c
 	$(CC) $(CFLAGS) -c $<
 
 .PHONY: clean
 clean:
-	rm *.o c4clone
+	rm *.o folkc4
